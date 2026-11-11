@@ -2,5 +2,5 @@
 // (termina em /exec). Enquanto estiver vazio, o app roda em MODO DEMONSTRAÇÃO (dados fictícios).
 // Este arquivo é público no GitHub: NÃO coloque aqui o código de acesso (ele é digitado no app).
 window.CHAMADA_CONFIG = {
-  URL: ""
+  URL: "https://script.google.com/macros/s/AKfycbzLo5cOF07ZByjcXYLBFnhSf615r5vNTkwet1OhYWE24yyYoMiXxIZLOt9tHoYo2iW1iA/exec"
 };
