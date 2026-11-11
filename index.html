@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lista de Chamada</title>
+<meta name="theme-color" content="#2f4b8f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Chamada">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#f3f4f7; --card:#ffffff; --ink:#1c2330; --muted:#667085; --line:#e3e6ec;
+  --ok:#157f4b; --ok-bg:#e4f5ec; --bad:#c62828; --bad-bg:#fdeaea;
+  --warn:#8a5a00; --warn-bg:#fff2d3;
+  --accent:#2f4b8f; --accent-bg:#e8edf8; --shadow:0 1px 2px rgba(16,24,40,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#10141b; --card:#19202a; --ink:#e8ecf3; --muted:#9aa4b5; --line:#2a3342;
+    --ok:#4cc38a; --ok-bg:#16352a; --bad:#ff7b7b; --bad-bg:#3b1e22;
+    --warn:#f2c867; --warn-bg:#3a2f12;
+    --accent:#8fa8ee; --accent-bg:#222c47; --shadow:none;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.35}
+button{font:inherit;color:inherit;cursor:pointer}
+[hidden]{display:none!important}
+#app{max-width:560px;margin:0 auto;min-height:100vh;padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+
+.top{padding:calc(10px + env(safe-area-inset-top)) 12px 10px 16px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;
+  display:flex;align-items:center;justify-content:space-between;gap:8px}
+.top .title{font-size:19px;font-weight:700}
+.top .sub{font-size:13px;color:var(--muted);margin-top:1px}
+.top .sub2{font-size:11.5px;color:var(--muted)}
+.top .btns{display:flex;gap:6px;flex:none}
+.iconbtn{border:1px solid var(--line);background:var(--card);border-radius:10px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.iconbtn svg{width:22px;height:22px}
+.iconbtn.spin svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.banner{margin:10px 12px 0;padding:8px 12px;border-radius:10px;font-size:13px;font-weight:600}
+.banner.info{background:var(--accent-bg);color:var(--accent)}
+.banner.warn{background:var(--warn-bg);color:var(--warn)}
+.banner.err{background:var(--bad-bg);color:var(--bad)}
+.demo{margin:10px 12px 0;font-size:12px;font-weight:600;color:var(--accent);background:var(--accent-bg);padding:6px 10px;border-radius:8px}
+
+main{padding:12px 12px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+.pad{padding:12px}
+
+.datebox{display:flex;gap:10px;align-items:center;justify-content:space-between}
+.datebox .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.datebox .big{font-size:17px;font-weight:650;text-transform:capitalize}
+input[type=date],input[type=search],input[type=password],input[type=text],select{
+  font:inherit;font-size:16px;color:var(--ink);background:var(--bg);
+  border:1px solid var(--line);border-radius:9px;padding:9px 10px;min-height:42px}
+input[type=search],input[type=password],input[type=text]{width:100%}
+.badge{display:inline-block;font-size:12px;font-weight:600;padding:3px 8px;border-radius:999px;margin-top:8px}
+.badge.info{background:var(--accent-bg);color:var(--accent)}
+.badge.warn{background:var(--bad-bg);color:var(--bad)}
+.badge.pend{background:var(--warn-bg);color:var(--warn)}
+
+.counters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.cnt{text-align:center;padding:9px 4px;border-radius:10px;background:var(--bg)}
+.cnt b{display:block;font-size:22px;line-height:1.1}
+.cnt span{font-size:11.5px;color:var(--muted)}
+.cnt.p b{color:var(--ok)} .cnt.f b{color:var(--bad)}
+
+.tools{display:flex;gap:8px;margin:10px 0}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:0 12px;min-height:42px;font-weight:600;white-space:nowrap}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.note{font-size:12px;color:var(--muted);margin:2px 2px 8px}
+
+.list{display:flex;flex-direction:column;gap:6px}
+.row{display:flex;align-items:center;gap:8px;width:100%;text-align:left;min-height:60px;padding:8px 10px;
+  background:var(--card);border:1px solid var(--line);border-left:5px solid var(--ok);border-radius:12px}
+.row.abs{border-left-color:var(--bad);background:var(--bad-bg)}
+.row .who{flex:1;min-width:0}
+.nm{display:block;font-weight:600;font-size:15.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mat{display:block;font-size:12px;color:var(--muted)}
+.pct{font-size:13px;font-weight:700;color:var(--ok);min-width:52px;text-align:right}
+.pct.bad{color:var(--bad)}
+.pill{min-width:84px;text-align:center;font-weight:700;font-size:14px;padding:10px 0;border-radius:9px;
+  background:var(--ok-bg);color:var(--ok)}
+.row.abs .pill{background:var(--bad);color:#fff}
+.empty{text-align:center;color:var(--muted);padding:20px}
+
+.state{text-align:center;padding:40px 16px;color:var(--muted)}
+.state .err{color:var(--bad);font-weight:600;margin-bottom:12px;word-break:break-word}
+
+.savebar{position:fixed;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom));z-index:6;padding:8px 12px;background:linear-gradient(to top,var(--bg) 70%,transparent)}
+.savebar .in{max-width:560px;margin:0 auto}
+.savebar button{width:100%;min-height:50px;border-radius:12px;border:0;background:var(--accent);color:#fff;font-weight:700;font-size:16px}
+.savebar button:disabled{background:var(--line);color:var(--muted);cursor:default}
+
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:7;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr)}
+.tab{border:0;background:none;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:12px;font-weight:600;color:var(--muted)}
+.tab svg{width:22px;height:22px}
+.tab[aria-selected=true]{color:var(--accent)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.stat{padding:10px 6px;text-align:center}
+.stat b{display:block;font-size:22px}
+.stat span{font-size:11.5px;color:var(--muted)}
+.stat.risk b{color:var(--bad)}
+.chips{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:0 14px;min-height:38px;font-weight:600;font-size:14px}
+.chip[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chips select{margin-left:auto;min-height:38px;padding:6px 8px;font-size:14px}
+
+.frow{width:100%;text-align:left;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-radius:12px}
+.frow.risk{border-color:var(--bad);background:var(--bad-bg)}
+.frow .top2{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.frow .big{font-weight:800;font-size:17px;color:var(--ok)}
+.frow.risk .big{color:var(--bad)}
+.frow .meta{font-size:12px;color:var(--muted);margin-top:2px}
+.bar{position:relative;height:8px;border-radius:6px;background:var(--line);margin-top:8px}
+.bar i{display:block;height:100%;border-radius:6px;background:var(--ok)}
+.frow.risk .bar i{background:var(--bad)}
+.bar u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.45}
+.alert{font-size:12px;font-weight:700;color:var(--bad);margin-top:5px}
+
+.sheetbg{position:fixed;inset:0;z-index:20;background:rgba(10,14,22,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:560px;max-height:86vh;overflow:auto;background:var(--card);border-radius:18px 18px 0 0;padding:16px 16px calc(22px + env(safe-area-inset-bottom))}
+.sheet h2{margin:0;font-size:18px}
+.sheet .meta{color:var(--muted);font-size:13px;margin:2px 0 10px}
+.sheet p{font-size:13.5px;color:var(--muted);margin:8px 0}
+.sheet .stack{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.sheet label{font-size:13px;font-weight:600}
+.hist{display:flex;flex-direction:column;gap:4px;margin:10px 0 14px}
+.hrow{display:flex;justify-content:space-between;padding:8px 10px;border-radius:8px;background:var(--bg);font-size:14px}
+.hrow b.P{color:var(--ok)} .hrow b.F{color:var(--bad)}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(130px + env(safe-area-inset-bottom));z-index:30;
+  background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;font-size:14px;max-width:90vw;text-align:center}
+</style>
+<script src="config.js"></script>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div style="min-width:0">
+      <div class="title">Lista de Chamada</div>
+      <div class="sub" id="subtitle">Carregando…</div>
+      <div class="sub2" id="sub2"></div>
+    </div>
+    <div class="btns">
+      <button class="iconbtn" id="refresh" aria-label="Sincronizar agora" title="Sincronizar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+      <button class="iconbtn" id="gear" aria-label="Configurações" title="Configurações">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/></svg></button>
+    </div>
+  </header>
+  <div class="demo" id="demo" hidden>MODO DEMONSTRAÇÃO · dados fictícios · configure a URL em config.js para usar a planilha real</div>
+  <div class="banner" id="banner" hidden></div>
+
+  <main>
+    <div class="state" id="stLoading">Carregando…</div>
+    <div class="state" id="stError" hidden>
+      <div class="err" id="errMsg"></div>
+      <button class="btn primary" id="retry">Tentar novamente</button>
+    </div>
+
+    <section id="v-chamada" hidden>
+      <div class="card pad">
+        <div class="datebox">
+          <div>
+            <div class="lbl">Data da aula</div>
+            <div class="big" id="dateLabel"></div>
+          </div>
+          <input type="date" id="dateIn" aria-label="Data da aula">
+        </div>
+        <div id="statusBadge"></div>
+        <div class="counters">
+          <div class="cnt p"><b id="cP">0</b><span>Presentes</span></div>
+          <div class="cnt f"><b id="cF">0</b><span>Ausentes</span></div>
+          <div class="cnt f"><b id="cR">0</b><span id="cRlbl">Abaixo de 75%</span></div>
+        </div>
+      </div>
+      <div class="tools">
+        <input type="search" id="q" placeholder="Buscar aluno…" aria-label="Buscar aluno">
+        <button class="btn" id="allP">Todos presentes</button>
+      </div>
+      <div class="note">Toque no aluno para alternar Presente/Ausente. O percentual já inclui esta chamada. Para justificar uma falta depois, abra a data, marque Presente e toque em “Atualizar chamada”.</div>
+      <div class="list" id="list"></div>
+    </section>
+
+    <section id="v-freq" hidden>
+      <div class="stats">
+        <div class="card stat"><b id="sAulas">0</b><span>Aulas realizadas</span></div>
+        <div class="card stat"><b id="sMedia">—</b><span>Frequência média</span></div>
+        <div class="card stat risk"><b id="sRisco">0</b><span id="sRlbl">Abaixo de 75%</span></div>
+      </div>
+      <div class="chips">
+        <button class="chip" id="fAll" aria-pressed="true">Todos</button>
+        <button class="chip" id="fRisk" aria-pressed="false">Em risco</button>
+        <select id="sortSel" aria-label="Ordenar">
+          <option value="nome">Nome</option>
+          <option value="pct">Menor frequência</option>
+        </select>
+      </div>
+      <div class="list" id="flist"></div>
+    </section>
+  </main>
+
+  <div class="savebar" id="savebar" hidden><div class="in"><button id="saveBtn">Registrar chamada</button></div></div>
+
+  <nav class="tabs"><div class="in" role="tablist">
+    <button class="tab" role="tab" data-tab="chamada" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/></svg>Chamada</button>
+    <button class="tab" role="tab" data-tab="freq" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Frequência</button>
+  </div></nav>
+
+  <div id="sheetBg" class="sheetbg" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+  <div id="toast" class="toast" hidden></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ====================== Configuração e armazenamento local ====================== */
+var CFG = window.CHAMADA_CONFIG || {};
+var API_URL = String(CFG.URL || "").trim();
+var DEMO = !API_URL;
+var P = DEMO ? "chamada.demo." : "chamada.";
+var LS = {token:P+"token", server:P+"server", queue:P+"queue", syncAt:P+"syncAt", url:P+"url"};
+
+function lsGet(k){ try{ var v=localStorage.getItem(k); return v?JSON.parse(v):null; }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+function pad(n){return String(n).padStart(2,"0");}
+function iso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function parse(s){var p=s.split("-").map(Number);return new Date(p[0],p[1]-1,p[2]);}
+function $(s){return document.querySelector(s);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function norm(s){return String(s).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();}
+
+/* ====================== Comunicação com o servidor (Apps Script) ====================== */
+function NetErr(msg){ this.message = msg; this.isNet = true; }
+function SrvErr(msg, code){ this.message = msg; this.code = code || "server"; }
+
+/* Modo demonstração: servidor fictício em memória */
+var demoDB = null;
+function demoInit(){
+  var NOMES=["Ana Beatriz Souza","Bruno Henrique Lima","Camila Ferreira","Daniel Rocha","Eduarda Martins","Felipe Andrade","Gabriela Nogueira","Henrique Duarte","Isabela Moreira","João Pedro Barbosa","Karina Teixeira","Lucas Almeida","Mariana Cavalcanti","Nicolas Pereira","Olívia Ramos","Paulo Vitor Gomes"];
+  var seedv=7; function rnd(){seedv=(seedv*16807)%2147483647;return seedv/2147483647;}
+  var t=new Date(); t.setHours(0,0,0,0);
+  demoDB={turma:"Turma fictícia",professor:"Prof. Exemplo",limite:75,alunos:[],datas:[],marcas:{}};
+  NOMES.forEach(function(n,i){demoDB.alunos.push({mat:"2026"+pad(i+1),nome:n});demoDB.marcas["2026"+pad(i+1)]={};});
+  for(var k=8;k>=1;k--){
+    var d=new Date(t); d.setDate(d.getDate()-7*k); var di=iso(d); demoDB.datas.push(di);
+    demoDB.alunos.forEach(function(a,i){ demoDB.marcas[a.mat][di]= rnd()<(i%5===0?0.4:0.08)?"F":"P"; });
+  }
+}
+function demoCall(action, payload){
+  if(!demoDB) demoInit();
+  return new Promise(function(resolve){ setTimeout(function(){
+    if(action==="save"){
+      if(demoDB.datas.indexOf(payload.date)<0){ demoDB.datas.push(payload.date); demoDB.datas.sort(); }
+      demoDB.alunos.forEach(function(a){ if(payload.marks[a.mat]) demoDB.marcas[a.mat][payload.date]=payload.marks[a.mat]; });
+    }
+    resolve({ok:true,data:JSON.parse(JSON.stringify(demoDB))});
+  },250); });
+}
+
+/* Chamada real. Corpo em texto simples (sem cabeçalhos extras) para evitar pré-verificação CORS. */
+function call(action, payload){
+  if(DEMO) return demoCall(action, payload||{});
+  var ctrl = (typeof AbortController!=="undefined") ? new AbortController() : null;
+  var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 30000) : null;
+  var body = JSON.stringify(Object.assign({token:token, action:action}, payload||{}));
+  return fetch(API_URL, {method:"POST", body:body, signal: ctrl ? ctrl.signal : undefined})
+    .catch(function(){ throw new NetErr("Sem conexão com o servidor."); })
+    .then(function(res){
+      if(timer) clearTimeout(timer);
+      return res.json().catch(function(){
+        throw new SrvErr("Resposta inválida do servidor. Confira a URL em config.js e se a implantação do Apps Script está com acesso “Qualquer pessoa”.", "bad_response");
+      });
+    })
+    .then(function(j){
+      if(!j || !j.ok) throw new SrvErr((j && j.error) || "Erro do servidor.", (j && j.code) || "server");
+      return j;
+    });
+}
+
+/* ====================== Estado ====================== */
+var token = DEMO ? "demo" : lsGet(LS.token);
+var server = null;        // último retrato da planilha (servidor)
+var queue = [];           // chamadas aguardando envio [{date, marks, ts}]
+var syncing = false, blocked = null, netDown = false, loaded = false, sheetLocked = false, confirmClear = false;
+var LIMIT = 75, STUDENTS = [], records = {}, draft = {};
+var today = new Date(); today.setHours(0,0,0,0);
+var dateSel = iso(today), autoDate = true, tab = "chamada";
+var freqFilter = "all", freqSort = "nome";
+
+(function restore(){
+  if(!DEMO && lsGet(LS.url) !== API_URL){ lsDel(LS.server); lsDel(LS.queue); lsDel(LS.syncAt); lsSet(LS.url, API_URL); }
+  server = lsGet(LS.server);
+  queue = lsGet(LS.queue) || [];
+})();
+
+function isPending(d){ return queue.some(function(q){return q.date===d;}); }
+
+/* Visão exibida = retrato do servidor + chamadas pendentes aplicadas por cima */
+function buildView(){
+  if(!server) return;
+  LIMIT = server.limite || 75;
+  STUDENTS = server.alunos.map(function(a){return {id:a.mat,nome:a.nome};});
+  records = {};
+  server.datas.forEach(function(di){records[di]={};});
+  STUDENTS.forEach(function(s){
+    var m = server.marcas[s.id] || {};
+    Object.keys(m).forEach(function(di){ if(!records[di]) records[di]={}; records[di][s.id]=m[di]; });
+  });
+  queue.forEach(function(q){
+    if(!records[q.date]) records[q.date]={};
+    Object.keys(q.marks).forEach(function(id){ records[q.date][id]=q.marks[id]; });
+  });
+  $("#subtitle").textContent = (server.turma||"") + (server.professor ? " · "+server.professor : "");
+  $("#cRlbl").textContent = "Abaixo de "+LIMIT+"%";
+  $("#sRlbl").textContent = "Abaixo de "+LIMIT+"%";
+}
+
+function stats(id, ovDate, ovStatus){
+  var p=0,f=0;
+  Object.keys(records).forEach(function(d){
+    if(d===ovDate) return;
+    var v=records[d][id]; if(v==="P")p++; else if(v==="F")f++;
+  });
+  if(ovDate && ovStatus){ if(ovStatus==="P")p++; else f++; }
+  var n=p+f;
+  return {p:p,f:f,n:n,pct:n?Math.round(p/n*1000)/10:null};
+}
+function isRisk(s){ return s.n>0 && s.p*100 < LIMIT*s.n; }
+function fmtPct(x){ if(x===null) return "—"; return (Number.isInteger(x)?String(x):x.toFixed(1).replace(".",","))+"%"; }
+function dataExt(s){ return parse(s).toLocaleDateString("pt-BR",{weekday:"long",day:"2-digit",month:"long"}); }
+function dataCurta(s){ var p=s.split("-"); return p[2]+"/"+p[1]; }
+function sortedDates(){ return Object.keys(records).sort(); }
+function hora(ts){
+  var d=new Date(ts), s=pad(d.getHours())+":"+pad(d.getMinutes());
+  return iso(d)===iso(new Date()) ? s : pad(d.getDate())+"/"+pad(d.getMonth()+1)+" "+s;
+}
+
+function loadDraft(){
+  var saved = records[dateSel];
+  draft = {};
+  STUDENTS.forEach(function(s){ draft[s.id] = saved && saved[s.id] ? saved[s.id] : "P"; });
+}
+function ensureDraft(){
+  STUDENTS.forEach(function(s){
+    if(!draft[s.id]) draft[s.id] = (records[dateSel] && records[dateSel][s.id]) || "P";
+  });
+}
+function isDirty(){
+  var saved = records[dateSel];
+  if(!saved) return true;
+  return STUDENTS.some(function(s){ return draft[s.id] !== (saved[s.id]||"P"); });
+}
+
+/* ====================== Telas ====================== */
+function renderChamada(){
+  $("#dateLabel").textContent = dataExt(dateSel);
+  $("#dateIn").value = dateSel;
+  var saved = records[dateSel], dirty = isDirty(), pend = isPending(dateSel);
+  var badge = "";
+  if(saved && !dirty) badge = pend ? '<span class="badge pend">Registrada neste aparelho · aguardando envio</span>' : '<span class="badge info">Chamada já registrada nesta data</span>';
+  else if(saved && dirty) badge = '<span class="badge warn">Alterações não registradas (vão sobrescrever a chamada)</span>';
+  $("#statusBadge").innerHTML = badge;
+
+  var q = norm($("#q").value.trim());
+  var risco = 0, pres = 0, html = [];
+  STUDENTS.forEach(function(s){
+    var st = draft[s.id] || "P", sx = stats(s.id, dateSel, st), rk = isRisk(sx);
+    if(st==="P") pres++;
+    if(rk) risco++;
+    if(q && norm(s.nome).indexOf(q)<0 && norm(s.id).indexOf(q)<0) return;
+    html.push('<button class="row '+(st==="F"?"abs":"pre")+'" data-id="'+esc(s.id)+'" role="switch" aria-checked="'+(st==="P")+'">'
+      +'<span class="who"><span class="nm">'+esc(s.nome)+'</span><span class="mat">'+esc(s.id)+'</span></span>'
+      +'<span class="pct'+(rk?" bad":"")+'">'+fmtPct(sx.pct)+'</span>'
+      +'<span class="pill">'+(st==="P"?"Presente":"Ausente")+'</span></button>');
+  });
+  $("#list").innerHTML = html.join("") || '<div class="empty">'+(STUDENTS.length?"Nenhum aluno encontrado.":"Nenhum aluno cadastrado na aba “Alunos” (colunas A e B, a partir da linha 2).")+'</div>';
+  $("#cP").textContent = pres;
+  $("#cF").textContent = STUDENTS.length - pres;
+  $("#cR").textContent = risco;
+
+  var btn = $("#saveBtn");
+  if(!STUDENTS.length){ btn.disabled = true; btn.textContent = "Registrar chamada"; }
+  else if(saved && !dirty){ btn.disabled = true; btn.textContent = pend ? "Registrada · aguardando envio" : "Chamada registrada ✓"; }
+  else { btn.disabled = false; btn.textContent = saved ? "Atualizar chamada" : "Registrar chamada"; }
+}
+
+function renderFreq(){
+  var rows = STUDENTS.map(function(s){ var sx=stats(s.id); return {s:s,sx:sx,risk:isRisk(sx)}; });
+  var soma=0, cnt=0, risco=0;
+  rows.forEach(function(r){ if(r.sx.pct!==null){soma+=r.sx.pct;cnt++;} if(r.risk) risco++; });
+  $("#sAulas").textContent = sortedDates().length;
+  $("#sMedia").textContent = cnt ? fmtPct(Math.round(soma/cnt*10)/10) : "—";
+  $("#sRisco").textContent = risco;
+  $("#fRisk").textContent = "Em risco ("+risco+")";
+  $("#fAll").setAttribute("aria-pressed", freqFilter==="all");
+  $("#fRisk").setAttribute("aria-pressed", freqFilter==="risk");
+  if(freqFilter==="risk") rows = rows.filter(function(r){return r.risk;});
+  if(freqSort==="pct") rows.sort(function(a,b){return (a.sx.pct===null?101:a.sx.pct)-(b.sx.pct===null?101:b.sx.pct) || a.s.nome.localeCompare(b.s.nome,"pt-BR");});
+  else rows.sort(function(a,b){return a.s.nome.localeCompare(b.s.nome,"pt-BR");});
+  $("#flist").innerHTML = rows.map(function(r){
+    var w = r.sx.pct===null?0:r.sx.pct;
+    return '<button class="frow'+(r.risk?" risk":"")+'" data-id="'+esc(r.s.id)+'">'
+      +'<div class="top2"><span class="nm">'+esc(r.s.nome)+'</span><span class="big">'+fmtPct(r.sx.pct)+'</span></div>'
+      +'<div class="meta">Presenças '+r.sx.p+' · Faltas '+r.sx.f+' · '+r.sx.n+' aulas</div>'
+      +'<div class="bar"><i style="width:'+w+'%"></i><u style="left:'+LIMIT+'%"></u></div>'
+      +(r.risk?'<div class="alert">⚠ Abaixo de '+LIMIT+'% — risco de reprovação por frequência</div>':'')
+      +'</button>';
+  }).join("") || '<div class="empty">'+(freqFilter==="risk"?"Nenhum aluno em risco.":"Sem alunos.")+'</div>';
+}
+
+function renderAll(){
+  if(!loaded) return;
+  if(tab==="chamada") renderChamada(); else renderFreq();
+}
+
+function showApp(){
+  $("#stLoading").hidden = true; $("#stError").hidden = true;
+  setTab(tab);
+}
+function setTab(t){
+  tab = t;
+  $("#v-chamada").hidden = !(loaded && t==="chamada");
+  $("#v-freq").hidden = !(loaded && t==="freq");
+  $("#savebar").hidden = !(loaded && t==="chamada");
+  document.querySelectorAll(".tab").forEach(function(b){ b.setAttribute("aria-selected", b.getAttribute("data-tab")===t); });
+  renderAll();
+  window.scrollTo(0,0);
+}
+
+/* Faixa de status (rede / fila) */
+function updateBanner(){
+  var el = $("#banner"), n = queue.length, txt = "", cls = "info";
+  var offline = (!DEMO && typeof navigator!=="undefined" && navigator.onLine===false);
+  var plural = n===1 ? "chamada aguardando envio" : "chamadas aguardando envio";
+  if(syncing){ txt = "Sincronizando…"; cls = "info"; }
+  else if(blocked){ txt = "Erro de sincronização: "+blocked+(n?" · "+n+" pendente(s)":""); cls = "err"; }
+  else if(offline){ txt = "Sem conexão"+(n?" · "+n+" "+plural:" · você pode registrar normalmente; o envio é automático quando a rede voltar"); cls = "warn"; }
+  else if(netDown){ txt = "Servidor inacessível"+(n?" · "+n+" "+plural:"")+" · nova tentativa automática"; cls = "warn"; }
+  else if(n){ txt = n+" "+plural; cls = "warn"; }
+  el.hidden = !txt; el.className = "banner "+cls; el.textContent = txt;
+  $("#refresh").className = "iconbtn"+(syncing?" spin":"");
+  var at = lsGet(LS.syncAt);
+  $("#sub2").textContent = DEMO ? "" : (at ? "Sincronizado em "+hora(at) : "Ainda não sincronizado");
+  $("#demo").hidden = !DEMO;
+}
+
+function toast(msg){
+  var t=$("#toast"); t.textContent=msg; t.hidden=false;
+  clearTimeout(toast._t); toast._t=setTimeout(function(){t.hidden=true;},3200);
+}
+
+/* ====================== Sincronização ====================== */
+function afterSync(){
+  if(server){
+    buildView();
+    if(!loaded){ loaded = true; loadDraft(); showApp(); }
+    else { if(!isDirty()) loadDraft(); else ensureDraft(); renderAll(); }
+  } else {
+    $("#stLoading").hidden = true; $("#stError").hidden = false;
+    var offline = (!DEMO && navigator.onLine===false);
+    $("#errMsg").textContent = blocked
+      ? "Não foi possível carregar: "+blocked
+      : (offline ? "Sem dados neste aparelho. Conecte-se à internet uma vez para baixar a lista de alunos."
+                 : "Servidor inacessível no momento. Verifique a conexão e tente novamente.");
+  }
+  updateBanner();
+}
+
+function showToken(msg){
+  sheetLocked = true;
+  $("#sheet").innerHTML = '<h2>Código de acesso</h2>'
+    +'<p>'+esc(msg || "Digite o código de acesso definido no Apps Script (CONFIG.TOKEN). Ele fica guardado só neste aparelho.")+'</p>'
+    +'<div class="stack"><input type="password" id="tokIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Código de acesso">'
+    +'<button class="btn primary" id="tokSave" style="min-height:48px">Salvar e sincronizar</button></div>';
+  $("#sheetBg").hidden = false;
+}
+
+function sync(manual){
+  if(syncing) return Promise.resolve();
+  if(manual) blocked = null;
+  if(blocked){ updateBanner(); return Promise.resolve(); }
+  if(!DEMO && !token){ showToken(); return Promise.resolve(); }
+  if(!DEMO && navigator.onLine===false){ afterSync(); return Promise.resolve(); }
+  syncing = true; updateBanner();
+
+  function sendNext(){
+    if(!queue.length) return Promise.resolve();
+    var item = queue[0];
+    return call("save", {date:item.date, marks:item.marks}).then(function(r){
+      server = r.data; lsSet(LS.server, server);
+      var i = queue.indexOf(item); if(i>=0) queue.splice(i,1);   // se foi substituído durante o envio, a versão nova permanece
+      lsSet(LS.queue, queue);
+      return sendNext();
+    });
+  }
+
+  var start = queue.length ? Promise.resolve() : call("data").then(function(r){ server = r.data; lsSet(LS.server, server); });
+  return start.then(sendNext).then(function(){
+    netDown = false; blocked = null; lsSet(LS.syncAt, Date.now());
+  }).catch(function(e){
+    if(e && e.isNet){ netDown = true; }
+    else {
+      blocked = (e && e.message) ? e.message : String(e);
+      if(e && e.code==="unauthorized"){ token = null; lsDel(LS.token); showToken(e.message); }
+    }
+  }).then(function(){
+    syncing = false; afterSync();
+  });
+}
+
+/* ====================== Fichas e configurações ====================== */
+function openSheet(id){
+  var s = STUDENTS.filter(function(x){return x.id===id;})[0]; if(!s) return;
+  var sx = stats(id), rk = isRisk(sx);
+  var hist = sortedDates().reverse().map(function(d){
+    var v = records[d][id]; if(!v) return "";
+    return '<div class="hrow"><span>'+dataExt(d)+'</span><b class="'+v+'">'+(v==="P"?"Presente":"Falta")+'</b></div>';
+  }).join("");
+  sheetLocked = false;
+  $("#sheet").innerHTML = '<h2>'+esc(s.nome)+'</h2>'
+    +'<div class="meta">Matrícula '+esc(s.id)+' · '+sx.p+' presenças · '+sx.f+' faltas · <b style="color:var(--'+(rk?"bad":"ok")+')">'+fmtPct(sx.pct)+'</b></div>'
+    +(rk?'<div class="alert">⚠ Abaixo de '+LIMIT+'% — risco de reprovação por frequência</div>':'')
+    +'<div class="hist">'+hist+'</div><button class="btn primary" id="closeSheet" style="width:100%">Fechar</button>';
+  $("#sheetBg").hidden = false;
+}
+function openSettings(){
+  sheetLocked = false; confirmClear = false;
+  var n = queue.length;
+  $("#sheet").innerHTML = '<h2>Configurações</h2>'
+    +'<div class="meta">'+(DEMO?"Modo demonstração":"Conectado à planilha")+' · '+n+' chamada(s) pendente(s)</div>'
+    +'<div class="stack">'
+    +(DEMO?'':'<label for="tokIn">Código de acesso</label><input type="password" id="tokIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="'+(token?"•••••• (já definido)":"Digite o código")+'">'
+      +'<button class="btn" id="tokSave">Salvar código</button>')
+    +'<button class="btn primary" id="setSync">Sincronizar agora</button>'
+    +'<button class="btn danger" id="setClear">Apagar dados deste aparelho</button>'
+    +'<button class="btn" id="closeSheet">Fechar</button></div>'
+    +'<p>As chamadas feitas sem internet ficam guardadas no aparelho e são enviadas automaticamente quando a conexão voltar. Apagar os dados do aparelho descarta chamadas ainda pendentes.</p>';
+  $("#sheetBg").hidden = false;
+}
+function closeSheet(){ $("#sheetBg").hidden = true; sheetLocked = false; }
+
+/* ====================== Eventos ====================== */
+$("#list").addEventListener("click", function(e){
+  var b = e.target.closest(".row"); if(!b) return;
+  var id = b.getAttribute("data-id");
+  draft[id] = (draft[id]||"P")==="P" ? "F" : "P";
+  renderChamada();
+});
+$("#allP").addEventListener("click", function(){
+  STUDENTS.forEach(function(s){ draft[s.id]="P"; });
+  renderChamada();
+});
+$("#q").addEventListener("input", renderChamada);
+$("#dateIn").addEventListener("change", function(e){
+  if(!e.target.value){ $("#dateIn").value = dateSel; return; }
+  dateSel = e.target.value; autoDate = false; loadDraft(); renderChamada();
+});
+$("#saveBtn").addEventListener("click", function(){
+  var marks = {}; STUDENTS.forEach(function(s){ marks[s.id]=draft[s.id]||"P"; });
+  var dia = dateSel, was = !!records[dia];
+  var aus = STUDENTS.filter(function(s){return marks[s.id]==="F";}).length;
+  queue = queue.filter(function(q){return q.date!==dia;});     // mantém só a versão mais recente de cada data
+  queue.push({date:dia, marks:marks, ts:Date.now()});
+  lsSet(LS.queue, queue);
+  buildView(); loadDraft(); renderAll();
+  var offline = (!DEMO && navigator.onLine===false);
+  toast((was?"Chamada atualizada":"Chamada registrada")+" · "+dataCurta(dia)+" · "+aus+" ausente"+(aus===1?"":"s")+(offline?" · será enviada quando houver conexão":""));
+  blocked = null; updateBanner(); sync();
+});
+document.querySelectorAll(".tab").forEach(function(b){
+  b.addEventListener("click", function(){ setTab(b.getAttribute("data-tab")); });
+});
+$("#fAll").addEventListener("click", function(){ freqFilter="all"; renderFreq(); });
+$("#fRisk").addEventListener("click", function(){ freqFilter="risk"; renderFreq(); });
+$("#sortSel").addEventListener("change", function(e){ freqSort=e.target.value; renderFreq(); });
+$("#flist").addEventListener("click", function(e){
+  var b = e.target.closest(".frow"); if(b) openSheet(b.getAttribute("data-id"));
+});
+$("#sheetBg").addEventListener("click", function(e){
+  var id = e.target.id;
+  if(id==="sheetBg"){ if(!sheetLocked) closeSheet(); return; }
+  if(id==="closeSheet"){ closeSheet(); return; }
+  if(id==="tokSave"){
+    var v = ($("#tokIn").value||"").trim(); if(!v) return;
+    token = v; lsSet(LS.token, token); closeSheet(); blocked = null; sync(true); return;
+  }
+  if(id==="setSync"){ closeSheet(); sync(true); return; }
+  if(id==="setClear"){
+    if(queue.length && !confirmClear){ confirmClear = true; e.target.textContent = "Há chamadas pendentes — toque de novo para apagar"; return; }
+    lsDel(LS.server); lsDel(LS.queue); lsDel(LS.syncAt);
+    server = null; queue = []; loaded = false; confirmClear = false;
+    $("#v-chamada").hidden = true; $("#v-freq").hidden = true; $("#savebar").hidden = true; $("#stLoading").hidden = false;
+    closeSheet(); updateBanner(); sync(true);
+  }
+});
+document.addEventListener("keydown", function(e){ if(e.key==="Escape" && !sheetLocked) closeSheet(); });
+$("#refresh").addEventListener("click", function(){ sync(true); });
+$("#gear").addEventListener("click", openSettings);
+$("#retry").addEventListener("click", function(){ $("#stError").hidden = true; $("#stLoading").hidden = false; sync(true); });
+
+window.addEventListener("online", function(){ netDown = false; sync(); });
+window.addEventListener("offline", updateBanner);
+document.addEventListener("visibilitychange", function(){
+  if(document.visibilityState && document.visibilityState!=="visible") return;
+  var t = new Date(); t.setHours(0,0,0,0);
+  if(autoDate && iso(t)!==dateSel && loaded && !isDirty()){ dateSel = iso(t); loadDraft(); renderAll(); }
+  sync();
+});
+setInterval(function(){ if(queue.length && !syncing && !blocked) sync(); }, 30000);
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+}
+
+/* ====================== Início ====================== */
+if(server){ buildView(); loaded = true; loadDraft(); showApp(); }
+updateBanner();
+if(!DEMO && !token){ showToken(); } else { sync(true); }
+})();
+</script>
+</body>
+</html>
