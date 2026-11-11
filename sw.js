@@ -1,9 +1,9 @@
 /* Service worker: guarda o app no aparelho para abrir sem internet.
    Estratégia: responde do cache e atualiza em segundo plano (a nova versão aparece na abertura seguinte).
    Para forçar atualização após mudar arquivos, aumente o número em CACHE. */
-var CACHE = "chamada-v1";
+var CACHE = "chamada-v2";
 var ASSETS = [
-  "./", "index.html", "config.js", "manifest.json",
+  "./", "index.html", "manifest.json",
   "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/apple-touch-icon.png"
 ];
 
